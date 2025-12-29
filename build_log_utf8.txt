@@ -1,0 +1,23 @@
+﻿app/api/admin/users/route.ts(44,7): error TS2322: Type '{ email: any; password: any; roleId: any; clearance: any; isAdmin: boolean; attributes: string; isLocked: false; mfaEnabled: false; }' is not assignable to type '(Without<UserCreateInput, UserUncheckedCreateInput> & UserUncheckedCreateInput) | (Without<...> & UserCreateInput)'.
+  Type '{ email: any; password: any; roleId: any; clearance: any; isAdmin: boolean; attributes: string; isLocked: false; mfaEnabled: false; }' is not assignable to type 'Without<UserUncheckedCreateInput, UserCreateInput> & UserCreateInput'.
+    Type '{ email: any; password: any; roleId: any; clearance: any; isAdmin: boolean; attributes: string; isLocked: false; mfaEnabled: false; }' is not assignable to type 'Without<UserUncheckedCreateInput, UserCreateInput>'.
+      Types of property 'roleId' are incompatible.
+        Type 'any' is not assignable to type 'never'.
+app/api/auth/register/route.ts(14,5): error TS2322: Type '{ email: any; password: any; roleId: string; }' is not assignable to type '(Without<UserCreateInput, UserUncheckedCreateInput> & UserUncheckedCreateInput) | (Without<...> & UserCreateInput)'.
+  Type '{ email: any; password: any; roleId: string; }' is not assignable to type 'Without<UserUncheckedCreateInput, UserCreateInput> & UserCreateInput'.
+    Type '{ email: any; password: any; roleId: string; }' is not assignable to type 'Without<UserUncheckedCreateInput, UserCreateInput>'.
+      Types of property 'roleId' are incompatible.
+        Type 'string' is not assignable to type 'never'.
+app/api/resource/[id]/route.ts(13,16): error TS2353: Object literal may only specify known properties, and 'label' does not exist in type 'ResourceInclude<DefaultArgs>'.
+app/api/resource/[id]/route.ts(25,31): error TS2339: Property 'label' does not exist on type '{ id: string; name: string; type: string; createdAt: Date; ownerId: string; confidentialityLevel: string; tags: string; }'.
+app/api/resources/route.ts(24,24): error TS2353: Object literal may only specify known properties, and 'label' does not exist in type 'ResourceInclude<DefaultArgs>'.
+app/api/resources/route.ts(40,13): error TS2353: Object literal may only specify known properties, and 'labelId' does not exist in type 'ResourceWhereInput'.
+app/api/resources/route.ts(42,20): error TS2353: Object literal may only specify known properties, and 'label' does not exist in type 'ResourceInclude<DefaultArgs>'.
+app/api/resources/route.ts(87,17): error TS2353: Object literal may only specify known properties, and 'labelId' does not exist in type '(Without<ResourceCreateInput, ResourceUncheckedCreateInput> & ResourceUncheckedCreateInput) | (Without<...> & ResourceCreateInput)'.
+app/api/resources/route.ts(89,24): error TS2353: Object literal may only specify known properties, and 'label' does not exist in type 'ResourceInclude<DefaultArgs>'.
+app/components/Sidebar.tsx(112,65): error TS2339: Property 'permission' does not exist on type '{ name: string; href: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; }'.
+app/components/Sidebar.tsx(112,98): error TS2339: Property 'permission' does not exist on type '{ name: string; href: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; }'.
+app/manager/approvals/page.tsx(43,104): error TS2339: Property 'department' does not exist on type 'User'.
+app/manager/team/page.tsx(50,102): error TS2339: Property 'department' does not exist on type 'User'.
+tailwind.config.ts(2,29): error TS2307: Cannot find module 'tailwindcss' or its corresponding type declarations.
+  There are types at 'C:/Users/PC/Downloads/secure-access-system/node_modules/tailwindcss/dist/lib.d.mts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.

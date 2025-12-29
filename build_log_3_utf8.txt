@@ -1,0 +1,2 @@
+﻿tailwind.config.ts(2,29): error TS2307: Cannot find module 'tailwindcss' or its corresponding type declarations.
+  There are types at 'C:/Users/PC/Downloads/secure-access-system/node_modules/tailwindcss/dist/lib.d.mts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.

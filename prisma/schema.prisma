@@ -1,0 +1,157 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String   
+  password  String
+  role      Role     @relation(fields: [roleId], references: [id])
+  roleId    String
+  department String? 
+  jobTitle   String? 
+  
+  clearance String   @default("INTERNAL") 
+  
+  isAdmin   Boolean  @default(false)
+  isLocked    Boolean  @default(false)
+  mfaEnabled  Boolean  @default(false)
+  attributes  String? // JSON string for ABAC attributes (e.g. { "department": "HR", "geo": "US" })
+  
+  requests    RoleRequest[]
+  assignedTasks Task[] @relation("AssignedTasks")
+  createdTasks  Task[] @relation("CreatedTasks")
+
+  resources Resource[]
+  createdAt DateTime @default(now())
+  logs      AuditLog[]
+}
+
+model RoleRequest {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  requestedRoleName String 
+  status      String   @default("PENDING") // PENDING, RECOMMENDED, APPROVED, DENIED
+  reason      String?
+  managerId   String?  // The manager who recommended it
+  recommendation String? // Optional note from manager
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  status      String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  priority    String   @default("MEDIUM")
+  dueDate     DateTime?
+  
+  assignee    User     @relation("AssignedTasks", fields: [assigneeId], references: [id])
+  assigneeId  String
+
+  creator     User     @relation("CreatedTasks", fields: [creatorId], references: [id])
+  creatorId   String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  type        String   @default("User role") 
+  users       User[]
+  permissions RolePermission[]
+  policies    Policy[]
+}
+
+model Tag {
+  id          String   @id @default(uuid())
+  key         String   
+  values      String   
+  type        String   
+  createdAt   DateTime @default(now())
+}
+
+model Policy {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  type        String   
+  
+  roleId      String?
+  role        Role?    @relation(fields: [roleId], references: [id])
+  
+  tags        String   @default("{}") 
+  
+  effect      String   @default("ALLOW")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  group       String   @default("General") 
+  description String?
+  roles       RolePermission[]
+}
+
+model RolePermission {
+  id           String     @id @default(uuid())
+  role         Role       @relation(fields: [roleId], references: [id])
+  roleId       String
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  permissionId String
+}
+
+model Resource {
+  id          String   @id @default(uuid())
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id])
+  name        String
+  type        String
+  
+  confidentialityLevel String @default("INTERNAL") 
+  
+  tags        String   @default("{}") 
+
+  createdAt   DateTime @default(now())
+  acls        ResourceACL[]
+}
+
+model ResourceACL {
+  id         String   @id @default(uuid())
+  resource   Resource @relation(fields: [resourceId], references: [id])
+  resourceId String
+  granteeId  String?  
+  granteeRoleId String? 
+  permission String   
+  grantedBy  String
+  grantedAt  DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  ip        String
+  createdAt DateTime @default(now())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model SecurityLabel {
+  id    String @id @default(uuid())
+  name  String
+  level String
+}
