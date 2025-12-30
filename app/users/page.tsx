@@ -1,8 +1,7 @@
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { User, Shield, Lock, MapPin, Briefcase, MoreHorizontal, Edit } from 'lucide-react';
+import { User, Shield, Lock, MapPin, Briefcase, MoreHorizontal, Edit, Plus } from 'lucide-react';
 import UserModal from '@/app/components/ui/UserModal';
 import { useUser } from '../context/UserContext';
 
@@ -52,18 +51,41 @@ export default function UsersPage() {
         setIsModalOpen(true);
     };
 
+    const handleAddUser = () => {
+        setSelectedUser(null);
+        setIsModalOpen(true);
+    };
+
     const handleSave = async (data: any) => {
-        if (!selectedUser) return;
         try {
-            await fetch(`/api/users/${selectedUser.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
+            let res;
+            if (selectedUser) {
+                // Update existing user
+                res = await fetch(`/api/users/${selectedUser.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } else {
+                // Create new user (data includes name, email, password)
+                res = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            }
+
+            if (!res.ok) {
+                const err = await res.json();
+                alert(`Error: ${err.error || 'Operation failed'}`);
+                return;
+            }
+
             fetchUsers();
             setIsModalOpen(false);
         } catch (e) {
             console.error(e);
+            alert('An unexpected error occurred.');
         }
     };
 
@@ -73,9 +95,22 @@ export default function UsersPage() {
         <div className="p-6 max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-8">
                 <div>
+                    <button
+                        onClick={() => window.location.href = '/'}
+                        className="text-slate-400 hover:text-white flex items-center gap-2 text-sm mb-2 transition-colors"
+                    >
+                        &larr; Back to Dashboard
+                    </button>
                     <h1 className="text-2xl font-bold text-slate-100">Users & Groups</h1>
                     <p className="text-slate-400 mt-1">View users and their assigned attributes (ABAC)</p>
                 </div>
+                <button
+                    onClick={handleAddUser}
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-blue-900/20"
+                >
+                    <Plus className="w-4 h-4" />
+                    Add User
+                </button>
             </div>
 
             <div className="bg-[#1E293B] rounded-lg border border-[#334155] overflow-hidden">

@@ -37,14 +37,7 @@ export default function Sidebar() {
         { name: 'Dept Files', href: '/manager/files', icon: Briefcase }, // Using Briefcase temporarily
       ]
     }] : []),
-    ...(currentUser?.role === 'Manager' ? [{
-      title: 'Department',
-      items: [
-        { name: 'Team Overview', href: '/manager/team', icon: Users },
-        { name: 'Approvals', href: '/manager/approvals', icon: CheckSquare },
-        { name: 'Dept Files', href: '/manager/files', icon: Briefcase },
-      ]
-    }] : []),
+
     {
       title: 'Security',
       items: [
@@ -52,6 +45,7 @@ export default function Sidebar() {
         { name: 'Roles', href: '/roles', icon: Lock, permission: 'role_manage' },
         { name: 'Tag Management', href: '/tags', icon: Tag, permission: 'folder_tag_edit' },
         { name: 'Policies', href: '/policies', icon: FileText, permission: 'policy_manage' },
+        { name: 'Secure Files', href: '/admin/files', icon: Database }, // Admin only
         { name: 'Audit Log', href: '/audit', icon: Activity, permission: 'audit_view' },
       ]
     },
