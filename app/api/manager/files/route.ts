@@ -1,8 +1,72 @@
 
 import { PrismaClient } from '@prisma/client';
 import { NextResponse } from 'next/server';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const prisma = new PrismaClient();
+
+// ... GET implementation remains same ...
+
+export async function POST(req: Request) {
+    try {
+        const body = await req.json();
+        const { name, type, ownerId, confidentialityLevel, fileContent, shares } = body;
+        // shares: [{ userId: '...', permission: 'READ' | 'WRITE' }]
+
+        let tagsJson = "{}";
+
+        // Handle File Upload
+        if (fileContent) {
+            try {
+                const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+                if (!fs.existsSync(uploadDir)) {
+                    fs.mkdirSync(uploadDir, { recursive: true });
+                }
+
+                const sanitize = (s: string) => s.replace(/[^a-z0-9.]/gi, '_').toLowerCase();
+                const safeName = `${Date.now()}_${sanitize(name)}`;
+                const filePath = path.join(uploadDir, safeName);
+
+                const matches = fileContent.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+                let buffer;
+                if (matches && matches.length === 3) {
+                    buffer = Buffer.from(matches[2], 'base64');
+                } else {
+                    buffer = Buffer.from(fileContent, 'base64');
+                }
+
+                fs.writeFileSync(filePath, buffer);
+                tagsJson = JSON.stringify({ filePath: `/uploads/${safeName}` });
+            } catch (err) {
+                console.error("File write error", err);
+                return NextResponse.json({ error: 'File save failed' }, { status: 500 });
+            }
+        }
+
+        const resource = await prisma.resource.create({
+            data: {
+                name,
+                type,
+                ownerId,
+                confidentialityLevel: confidentialityLevel || 'INTERNAL',
+                tags: tagsJson,
+                acls: {
+                    create: (shares || []).map((s: any) => ({
+                        permission: s.permission || 'READ',
+                        granteeId: s.userId, // User-based DAC
+                        grantedBy: ownerId
+                    }))
+                }
+            },
+            include: { acls: true }
+        });
+        return NextResponse.json(resource);
+    } catch (error) {
+        console.error("Create error", error);
+        return NextResponse.json({ error: 'Failed to create file' }, { status: 500 });
+    }
+}
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
@@ -70,21 +134,4 @@ export async function GET(req: Request) {
     }
 }
 
-export async function POST(req: Request) {
-    try {
-        const body = await req.json();
-        const { name, type, ownerId, confidentialityLevel } = body;
 
-        const resource = await prisma.resource.create({
-            data: {
-                name,
-                type,
-                ownerId,
-                confidentialityLevel: confidentialityLevel || 'INTERNAL',
-            }
-        });
-        return NextResponse.json(resource);
-    } catch (error) {
-        return NextResponse.json({ error: 'Failed to create file' }, { status: 500 });
-    }
-}

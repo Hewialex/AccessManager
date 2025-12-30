@@ -27,6 +27,7 @@ export default function Sidebar() {
       title: 'My Workspace',
       items: [
         { name: 'Employee Dashboard', href: '/workspace', icon: Briefcase },
+        { name: 'My Secure Files', href: '/manager/files', icon: FileText },
       ]
     }] : []),
     ...(currentUser?.role === 'Manager' ? [{
