@@ -23,7 +23,7 @@ export default function Sidebar() {
   if (isLoading) return <aside className="w-72 bg-[#0F172A] border-r border-[#1E293B] h-screen" />;
 
   const menuGroups: { title: string; items: { name: string; href: string; icon: any; permission?: string }[] }[] = [
-    ...((!currentUser || currentUser.role !== 'Administrator') ? [{
+    ...((!currentUser || (currentUser.role !== 'Administrator' && currentUser.role !== 'Admin')) ? [{
       title: 'My Workspace',
       items: [
         { name: 'Employee Dashboard', href: '/workspace', icon: Briefcase },

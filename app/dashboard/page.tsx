@@ -1,14 +1,8 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
-interface User {
-  id: string;
-  email: string;
-  clearance: string;
-  isAdmin: boolean;
-}
+import { useUser } from '../context/UserContext';
 
 interface Label {
   id: string;
@@ -21,16 +15,17 @@ interface Resource {
   name: string;
   type: string;
   label: Label;
+  confidentialityLevel?: string;
   owner: { email: string };
   createdAt: string;
 }
 
 export default function Dashboard() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const { currentUser, isLoading } = useUser();
   const [resources, setResources] = useState<Resource[]>([]);
   const [labels, setLabels] = useState<Label[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingResources, setLoadingResources] = useState(true);
 
   // Form State
   const [newName, setNewName] = useState('');
@@ -39,53 +34,43 @@ export default function Dashboard() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token'); // Assuming login stores token here? 
-    // Actually the existing login/route.ts returns { token }. 
-    // And api/me expects 'Authorization' header.
-    // I need to check where the token is stored. 
-    // If this is a new implementation, I might need to implement the fetch wrapper.
-    // For now, I'll attempt to use the token from localStorage if my login page puts it there.
-    // If there is no login page logic I can see, I should probably implement a basic one or assume it's cookie based?
-    // The previous page.tsx didn't have login logic. app/login likely has it. 
-    // I'll assume standard localStorage or cookie.
-
-    // Let's try to fetch /api/me first.
-    fetchData();
-  }, []);
-
-  const getHeaders = () => {
-    const token = localStorage.getItem('token');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
-  }
+    if (!isLoading && !currentUser) {
+      // Redirect handled by context or layout usually, but:
+      // router.push('/login');
+    }
+    if (currentUser) {
+      fetchData();
+    }
+  }, [currentUser, isLoading]);
 
   const fetchData = async () => {
     try {
-      // 1. Get Me
-      const meRes = await fetch('/api/me', { headers: getHeaders() });
-      if (meRes.status === 401) {
-        router.push('/login');
-        return;
-      }
-      const meData = await meRes.json();
-      setUser(meData.user);
-
-      // 2. Get Resources
-      const resRes = await fetch('/api/resources', { headers: getHeaders() });
+      // 1. Get Resources (Cookies sent automatically)
+      const resRes = await fetch('/api/resources');
       if (resRes.ok) {
         const resData = await resRes.json();
-        setResources(resData.resources);
+        // Map backend confidentialityLevel to frontend Label structure
+        const mappedResources = (resData.resources || []).map((r: any) => ({
+          ...r,
+          label: r.label || {
+            id: r.confidentialityLevel || 'INTERNAL',
+            name: r.confidentialityLevel || 'INTERNAL',
+            level: r.confidentialityLevel || 'INTERNAL'
+          }
+        }));
+        setResources(mappedResources);
       }
 
-      // 3. Get Labels
-      const lblRes = await fetch('/api/labels', { headers: getHeaders() });
+      // 2. Get Labels
+      const lblRes = await fetch('/api/labels');
       if (lblRes.ok) {
         const lblData = await lblRes.json();
-        setLabels(lblData.labels);
+        setLabels(lblData.labels || []);
       }
     } catch (e) {
       console.error(e);
     } finally {
-      setLoading(false);
+      setLoadingResources(false);
     }
   };
 
@@ -95,7 +80,7 @@ export default function Dashboard() {
     try {
       const res = await fetch('/api/resources', {
         method: 'POST',
-        headers: { ...getHeaders(), 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newName, type: newType, level: newLevel })
       });
       if (res.ok) {
@@ -120,7 +105,6 @@ export default function Dashboard() {
     }
   };
 
-  // Custom styles since we might not have Tailwind configured perfectly everywhere
   const s = {
     page: { padding: 40, maxWidth: 1200, margin: '0 auto' },
     header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 },
@@ -130,19 +114,19 @@ export default function Dashboard() {
     labelBadge: { padding: '4px 8px', borderRadius: 4, fontSize: '0.75rem', fontWeight: 600, border: '1px solid transparent' }
   };
 
-  if (loading) return <div style={{ padding: 40, textAlign: 'center' }}>Loading access control systems...</div>;
+  if (isLoading || loadingResources) return <div style={{ padding: 40, textAlign: 'center' }}>Loading access control systems...</div>;
 
   return (
     <div style={s.page}>
       <header style={s.header}>
         <div>
           <h1 style={{ margin: 0, fontSize: '2rem' }}>Secure Dashboard</h1>
-          <p style={{ opacity: 0.6, margin: '4px 0 0' }}>Logged in as <strong>{user?.email}</strong></p>
+          <p style={{ opacity: 0.6, margin: '4px 0 0' }}>Logged in as <strong>{currentUser?.email}</strong></p>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: '0.8rem', opacity: 0.6 }}>CLEARANCE LEVEL</div>
-          <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: user?.clearance === 'CONFIDENTIAL' ? '#f87171' : '#60a5fa' }}>
-            {user?.clearance || 'UNKNOWN'}
+          <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: currentUser?.clearance === 'CONFIDENTIAL' ? '#f87171' : '#60a5fa' }}>
+            {currentUser?.clearance || 'UNKNOWN'}
           </div>
         </div>
       </header>
@@ -203,7 +187,7 @@ export default function Dashboard() {
                 </select>
                 <div style={{ fontSize: '0.8rem', opacity: 0.5 }}>
                   Note: You are responsible for properly classifying data.
-                  {user?.clearance !== 'CONFIDENTIAL' && newLevel === 'CONFIDENTIAL' &&
+                  {currentUser?.clearance !== 'CONFIDENTIAL' && newLevel === 'CONFIDENTIAL' &&
                     <span style={{ color: '#f87171', display: 'block', marginTop: 4 }}>⚠ Warning: You will not be able to view this resource after creation due to your lower clearance.</span>
                   }
                 </div>

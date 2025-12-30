@@ -7,8 +7,9 @@ import { useUser } from '../context/UserContext';
 import { redirect } from 'next/navigation';
 
 export default function MyWorkspacePage() {
-    const { currentUser } = useUser();
+    const { currentUser, isLoading } = useUser();
 
+    if (isLoading) return <div className="p-10 text-center text-slate-500">Loading Workspace...</div>;
     // In a real app we might check for specific 'employee_tools' permission
     // For now, if you are not Admin, you see this.
 

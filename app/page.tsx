@@ -1,8 +1,30 @@
+'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Users, Lock, Tag, FileText } from 'lucide-react';
+import { useUser } from './context/UserContext';
+import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
+  const { currentUser, isLoading } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && currentUser) {
+      if (currentUser.role !== 'Administrator' && currentUser.role !== 'Admin') {
+        if (currentUser.role === 'Manager') {
+          router.replace('/dashboard');
+        } else {
+          router.replace('/workspace');
+        }
+      }
+    }
+  }, [currentUser, isLoading, router]);
+
+  if (isLoading || (currentUser && currentUser.role !== 'Administrator' && currentUser.role !== 'Admin')) {
+    return <div className="p-10 text-center text-slate-500">Loading Dashboard...</div>;
+  }
+
   const stats = [
     { label: 'Total Users', value: '3', icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
     { label: 'Active Roles', value: '4', icon: Lock, color: 'text-purple-500', bg: 'bg-purple-500/10' },

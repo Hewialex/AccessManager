@@ -10,6 +10,7 @@ interface User {
     role: string;
     email: string;
     department?: string; // Added department
+    clearance: string; // Added clearance
     permissions: string[];
 }
 
@@ -29,42 +30,42 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        async function fetchUsers() {
+        async function fetchMe() {
             try {
-                const res = await fetch('/api/users');
-                const data = await res.json();
-                setUsers(data);
-                // In a real app, we would hydrate the logged-in user from the session/cookie
-                // For this showcase, we default to Admin (first user usually)
-                if (data.length > 0) {
-                    // Try to recover state or default to admin
-                    const savedId = localStorage.getItem('demo_current_user_id');
-                    const found = data.find((u: User) => u.id === savedId) || data[0];
-                    setCurrentUser(found);
+                const res = await fetch('/api/auth/me');
+                if (res.ok) {
+                    const data = await res.json();
+                    setCurrentUser(data.user);
+                } else {
+                    setCurrentUser(null);
+                    if (typeof window !== 'undefined' &&
+                        !window.location.pathname.startsWith('/login') &&
+                        !window.location.pathname.startsWith('/register')) {
+                        window.location.href = '/login';
+                    }
                 }
             } catch (error) {
-                console.error('Failed to fetch users', error);
+                console.error('Failed to fetch user', error);
             } finally {
                 setIsLoading(false);
             }
         }
-        fetchUsers();
+        fetchMe();
+
+        // Fetch all users only for Admin if needed? For now we disable the list logic.
+        // setUsers([]); 
     }, []);
 
     const switchUser = async (userId: string) => {
-        const user = users.find(u => u.id === userId);
-        if (user) {
-            setCurrentUser(user);
-            localStorage.setItem('demo_current_user_id', userId);
-            await switchUserAction(userId);
-        }
+        // Deprecated: Now we use real login
+        console.warn("Switch user deprecated. Use logout/login.");
     };
 
     const hasPermission = (permission: string) => {
         // Admin role usually has all, but here we check the specific permission list from DB
         // For "Administrator" role we might want to wildcard, but our seed data gave explicit permissions too.
         if (!currentUser) return false;
-        if (currentUser.role === 'Administrator') return true; // Super admin override for showcase comfort
+        if (currentUser.role === 'Administrator' || currentUser.role === 'Admin') return true; // Super admin override for showcase comfort
         return currentUser.permissions.includes(permission);
     };
 

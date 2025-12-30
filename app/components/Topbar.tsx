@@ -35,28 +35,23 @@ export default function Topbar() {
 
       {/* Right Controls */}
       <div className="flex items-center gap-6">
-        {/* Switch User Dropdown */}
-        <div className="group relative">
-          <div className="flex items-center gap-3 bg-[#1E293B]/50 hover:bg-[#1E293B] rounded-xl p-1.5 pr-4 border border-transparent hover:border-[#334155] transition-all cursor-pointer">
-            <div className="p-1.5 bg-blue-500/10 rounded-lg">
-              <User className="w-4 h-4 text-blue-400" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Acting As</span>
-              <select
-                className="bg-transparent text-sm text-slate-200 font-medium focus:outline-none cursor-pointer min-w-[120px] -ml-1"
-                value={currentUser?.id || ''}
-                onChange={(e) => handleUserSwitch(e.target.value)}
-                disabled={isLoading}
-              >
-                {users.map(u => (
-                  <option key={u.id} value={u.id} className="bg-[#1E293B]">
-                    {u.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+        {/* User Profile & Logout */}
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <div className="text-sm font-bold text-white">{currentUser?.name}</div>
+            <div className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{currentUser?.role}</div>
           </div>
+          <button
+            onClick={() => {
+              // Clear cookie/token
+              document.cookie = 'token=; Max-Age=0; path=/;';
+              document.cookie = 'x-user-id=; Max-Age=0; path=/;';
+              window.location.href = '/login';
+            }}
+            className="bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border border-red-500/20"
+          >
+            Logout
+          </button>
         </div>
 
         <div className="h-8 w-px bg-[#1E293B]" />

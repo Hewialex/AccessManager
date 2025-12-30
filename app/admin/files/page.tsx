@@ -149,57 +149,59 @@ export default function AdminFilesPage() {
             </div>
 
             <div className="bg-[#1E293B] rounded-lg border border-[#334155] overflow-hidden">
-                <table className="w-full text-left text-sm">
-                    <thead className="bg-[#0F172A] text-slate-400 font-medium border-b border-[#334155]">
-                        <tr>
-                            <th className="px-6 py-4">File Name</th>
-                            <th className="px-6 py-4">Type</th>
-                            <th className="px-6 py-4">Confidentiality (MAC)</th>
-                            <th className="px-6 py-4">Restricted To Roles (RBAC)</th>
-                            <th className="px-6 py-4">Owner</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#334155]">
-                        {files.map(file => (
-                            <tr key={file.id} className="hover:bg-slate-800/50 transition-colors">
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-2 text-slate-200 font-medium">
-                                        <FileText className="w-4 h-4 text-slate-500" />
-                                        {file.name}
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 text-slate-400">{file.type}</td>
-                                <td className="px-6 py-4">
-                                    <span className={`font-mono text-xs px-2 py-0.5 rounded border ${file.confidentialityLevel === 'TOP_SECRET' ? 'text-red-400 border-red-400/20 bg-red-400/10' :
-                                        file.confidentialityLevel === 'CONFIDENTIAL' ? 'text-orange-400 border-orange-400/20 bg-orange-400/10' :
-                                            file.confidentialityLevel === 'INTERNAL' ? 'text-blue-400 border-blue-400/20 bg-blue-400/10' :
-                                                'text-emerald-400 border-emerald-400/20 bg-emerald-400/10'
-                                        }`}>
-                                        {file.confidentialityLevel}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex flex-wrap gap-1">
-                                        {file.acls.length > 0 ? (
-                                            file.acls.map(acl => {
-                                                const roleName = roles.find(r => r.id === acl.granteeRoleId)?.name || 'Unknown Role';
-                                                return (
-                                                    <span key={acl.granteeRoleId} className="inline-flex items-center px-2 py-0.5 rounded bg-slate-700 text-slate-300 text-xs border border-slate-600">
-                                                        <Users className="w-3 h-3 mr-1" />
-                                                        {roleName}
-                                                    </span>
-                                                );
-                                            })
-                                        ) : (
-                                            <span className="text-slate-500 italic text-xs">All roles with clearance</span>
-                                        )}
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 text-slate-500 text-xs">{file.owner.email}</td>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-[#0F172A] text-slate-400 font-medium border-b border-[#334155]">
+                            <tr>
+                                <th className="px-6 py-4 whitespace-nowrap">File Name</th>
+                                <th className="px-6 py-4 whitespace-nowrap">Type</th>
+                                <th className="px-6 py-4 whitespace-nowrap">Confidentiality (MAC)</th>
+                                <th className="px-6 py-4 whitespace-nowrap">Restricted To Roles (RBAC)</th>
+                                <th className="px-6 py-4 whitespace-nowrap">Owner</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-[#334155]">
+                            {files.map(file => (
+                                <tr key={file.id} className="hover:bg-slate-800/50 transition-colors">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-2 text-slate-200 font-medium whitespace-nowrap">
+                                            <FileText className="w-4 h-4 text-slate-500" />
+                                            {file.name}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-slate-400 whitespace-nowrap">{file.type}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className={`font-mono text-xs px-2 py-0.5 rounded border ${file.confidentialityLevel === 'TOP_SECRET' ? 'text-red-400 border-red-400/20 bg-red-400/10' :
+                                            file.confidentialityLevel === 'CONFIDENTIAL' ? 'text-orange-400 border-orange-400/20 bg-orange-400/10' :
+                                                file.confidentialityLevel === 'INTERNAL' ? 'text-blue-400 border-blue-400/20 bg-blue-400/10' :
+                                                    'text-emerald-400 border-emerald-400/20 bg-emerald-400/10'
+                                            }`}>
+                                            {file.confidentialityLevel}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex flex-wrap gap-1 min-w-[200px]">
+                                            {file.acls.length > 0 ? (
+                                                file.acls.map(acl => {
+                                                    const roleName = roles.find(r => r.id === acl.granteeRoleId)?.name || 'Unknown Role';
+                                                    return (
+                                                        <span key={acl.granteeRoleId} className="inline-flex items-center px-2 py-0.5 rounded bg-slate-700 text-slate-300 text-xs border border-slate-600 whitespace-nowrap">
+                                                            <Users className="w-3 h-3 mr-1" />
+                                                            {roleName}
+                                                        </span>
+                                                    );
+                                                })
+                                            ) : (
+                                                <span className="text-slate-500 italic text-xs whitespace-nowrap">All roles with clearance</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-slate-500 text-xs whitespace-nowrap">{file.owner?.email || 'Unknown'}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
                 {files.length === 0 && (
                     <div className="p-8 text-center text-slate-500">No files uploaded yet.</div>
                 )}
