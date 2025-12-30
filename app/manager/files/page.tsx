@@ -123,12 +123,20 @@ export default function ManagerFilesPage() {
                     <h1 className="text-2xl font-bold text-slate-100">Department Files (DAC)</h1>
                     <p className="text-slate-400">Manage and share sensitive documents with discretionary access.</p>
                 </div>
-                <button
-                    onClick={handleCreateFile}
-                    className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-medium"
-                >
-                    <Plus className="w-4 h-4" /> Upload File
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={handleCreateFile}
+                        className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-medium"
+                    >
+                        <Plus className="w-4 h-4" /> Upload File
+                    </button>
+                    <button
+                        onClick={fetchFiles}
+                        className="bg-[#1E293B] hover:bg-[#334155] text-slate-300 px-4 py-2 rounded-xl border border-[#334155] border-l-0 text-sm font-medium transition-colors"
+                    >
+                        Refresh
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

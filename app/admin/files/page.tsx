@@ -23,6 +23,7 @@ export default function AdminFilesPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Form State
+    const [file, setFile] = useState<File | null>(null);
     const [fileName, setFileName] = useState('');
     const [fileType, setFileType] = useState('Document');
     const [level, setLevel] = useState('INTERNAL');
@@ -54,10 +55,31 @@ export default function AdminFilesPage() {
             .catch(console.error);
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const f = e.target.files[0];
+            setFile(f);
+            setFileName(f.name);
+            setFileType(f.type || 'Document');
+        }
+    };
+
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
+
         try {
+            let fileContent = null;
+            if (file) {
+                // Convert to Base64
+                fileContent = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
             const res = await fetch('/api/resources', {
                 method: 'POST',
                 headers: {
@@ -68,7 +90,8 @@ export default function AdminFilesPage() {
                     name: fileName,
                     type: fileType,
                     level: level,
-                    roles: selectedRoles
+                    roles: selectedRoles,
+                    fileContent // Send Base64 data
                 })
             });
 
@@ -80,11 +103,14 @@ export default function AdminFilesPage() {
                 setFileType('Document');
                 setLevel('INTERNAL');
                 setSelectedRoles([]);
+                setFile(null);
             } else {
-                alert('Failed to upload resource');
+                const err = await res.json();
+                alert(`Failed to upload resource: ${err.error || 'Unknown error'}`);
             }
         } catch (err) {
             console.error(err);
+            alert('An unexpected error occurred during upload.');
         } finally {
             setIsSubmitting(false);
         }
@@ -145,9 +171,9 @@ export default function AdminFilesPage() {
                                 <td className="px-6 py-4 text-slate-400">{file.type}</td>
                                 <td className="px-6 py-4">
                                     <span className={`font-mono text-xs px-2 py-0.5 rounded border ${file.confidentialityLevel === 'TOP_SECRET' ? 'text-red-400 border-red-400/20 bg-red-400/10' :
-                                            file.confidentialityLevel === 'CONFIDENTIAL' ? 'text-orange-400 border-orange-400/20 bg-orange-400/10' :
-                                                file.confidentialityLevel === 'INTERNAL' ? 'text-blue-400 border-blue-400/20 bg-blue-400/10' :
-                                                    'text-emerald-400 border-emerald-400/20 bg-emerald-400/10'
+                                        file.confidentialityLevel === 'CONFIDENTIAL' ? 'text-orange-400 border-orange-400/20 bg-orange-400/10' :
+                                            file.confidentialityLevel === 'INTERNAL' ? 'text-blue-400 border-blue-400/20 bg-blue-400/10' :
+                                                'text-emerald-400 border-emerald-400/20 bg-emerald-400/10'
                                         }`}>
                                         {file.confidentialityLevel}
                                     </span>
@@ -192,6 +218,15 @@ export default function AdminFilesPage() {
 
                         <form onSubmit={handleUpload} className="p-6 space-y-5 overflow-y-auto custom-scrollbar">
                             <div>
+                                <label className="text-xs text-slate-400 mb-1 block">Selected File</label>
+                                <input
+                                    type="file"
+                                    onChange={handleFileChange}
+                                    className="w-full bg-[#1E293B] border border-[#334155] rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-600/20 file:text-blue-400 hover:file:bg-blue-600/30"
+                                />
+                            </div>
+
+                            <div>
                                 <label className="text-xs text-slate-400 mb-1 block">File Name</label>
                                 <input
                                     required
@@ -221,8 +256,8 @@ export default function AdminFilesPage() {
                                             type="button"
                                             onClick={() => setLevel(lvl)}
                                             className={`px-3 py-2 rounded-lg border text-xs font-medium transition-colors ${level === lvl
-                                                    ? 'bg-blue-600 border-blue-500 text-white'
-                                                    : 'bg-[#1E293B] border-[#334155] text-slate-400 hover:border-slate-500'
+                                                ? 'bg-blue-600 border-blue-500 text-white'
+                                                : 'bg-[#1E293B] border-[#334155] text-slate-400 hover:border-slate-500'
                                                 }`}
                                         >
                                             {lvl}

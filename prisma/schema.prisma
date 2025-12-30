@@ -125,6 +125,7 @@ model Resource {
   confidentialityLevel String @default("INTERNAL") 
   
   tags        String   @default("{}") 
+  filePath    String?
 
   createdAt   DateTime @default(now())
   acls        ResourceACL[]
